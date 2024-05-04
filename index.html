@@ -2,38 +2,143 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>test page</title>
+    <title>自动驾驶责任判定</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition-duration: .2s;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+        }
+
+        #dataForm {
+            width: 50vw;
+            margin-top: 5vh;
+            padding: 16px;
+            border-radius: 8px;
+            background: #fafafa;
+            box-shadow: 4px 4px 8px #0000004d, 
+                        -4px -4px 8px #ffffff4d;
+        } #dataForm:hover {
+            box-shadow: 6px 6px 12px #0000003d, 
+                        -4px -4px 8px #ffffff3d;
+        }
+
+        .block {
+            display: block;
+            margin: 8px;
+        }
+
+        label {
+            margin: 8px 16px 0 16px;
+        }
+
+        input[type="text"] {
+            padding: 4px 8px;
+            border-radius: 5px;
+            border: none;
+            margin-right: 8px;
+            box-shadow: inset 2px 2px 6px #0000004d, 
+                        inset -2px -2px 6px #ffffff4d;
+        } input[type="text"]:focus {
+            outline: none;
+            box-shadow: inset 2px 2px 6px #00000080, 
+                        inset -2px -2px 6px #ffffff80;
+        }
+
+        select {
+            padding: 4px 8px;
+            border-radius: 5px;
+            border: none;
+            margin-right: 8px;
+            box-shadow: inset 2px 2px 6px #0000004d, 
+                        inset -2px -2px 6px #ffffff4d;
+        } select:focus {
+            outline: none;
+            box-shadow: inset 2px 2px 6px #00000080, 
+                        inset -2px -2px 6px #ffffff80;
+        }
+
+        button {
+            margin: 8px 16px 16px 16px;
+            padding: 6px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: inset 2px 2px 6px #0000004d, 
+                        inset -2px -2px 6px #ffffff4d;
+        } button:hover {
+            outline: none;
+            box-shadow: inset 2px 2px 6px #00000080, 
+                        inset -2px -2px 6px #ffffff80;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #result {
+            width: 50vw;
+            margin-top: 16px;
+            padding: 16px;
+            background: #fafafa;
+            border-radius: 8px;
+            font-weight: bold;
+            box-shadow: 4px 4px 8px #0000004d, 
+                        -4px -4px 8px #ffffff4d;
+        } #result:hover {
+            box-shadow: 6px 6px 12px #0000003d, 
+                        -4px -4px 8px #ffffff3d;
+        }
+    </style>
 </head>
 <body>
-    <p>说明文档</p>
-
-    <p>A车为前车，B车为后车</p>
-    <p>前两个输入为自动驾驶等级（0-5）</p>
-    <p>后面的1-6对照以下：</p>
-    <p>左转 1</p>
-    <p>右转 2</p>
-    <p>调头 3</p>
-    <p>变道 4</p>
-    <p>直行 5</p>
-    <p>超车 6</p>
-    <p>下拉框版本还在测试中，未上线</p>
-    <p>输出格式：前车驾驶员责任，前车开发商责任，后车驾驶员责任，后车开发商责任</p>
-    <form id="dataForm">
-        <label for="la">la:</label>
-        <input type="text" id="la" name="la">
-        <br>
-        <label for="lb">lb:</label>
-        <input type="text" id="lb" name="lb">
-        <br>
-        <label for="waya">waya:</label>
-        <input type="text" id="waya" name="waya">
-        <br>
-        <label for="wayb">wayb:</label>
-        <input type="text" id="wayb" name="wayb">
-        <br>
-        <button type="button" onclick="submitData()">Submit</button>
-    </form>
-    <div id="result"></div>
+    <div class="container">
+        <div id="dataForm"> <div class="block">
+            <label for="la">输出格式：前车驾驶员责任，前车开发商责任，后车驾驶员责任，后车开发商责任，皆为百分比</label>
+        </div>
+            <div class="block">
+                <label for="la">前车的自动驾驶等级（L0-L5）:</label>
+                <input type="text" id="la" name="la">
+            </div>
+            <div class="block">
+                <label for="lb">后车的自动驾驶等级（L0-L5）:</label>
+                <input type="text" id="lb" name="lb">
+            </div>
+            <div class="block">
+                <label for="waya">前车的行为:</label>
+                <select name="waya" id="waya">
+                    <option value="1">左转</option>
+                    <option value="2">右转</option>
+                    <option value="3">调头</option>
+                    <option value="4">变道</option>
+                    <option value="5">直行</option>
+                </select>
+            </div>
+            <div class="block">
+                <label for="wayb">后车的行为:</label>
+                <select name="wayb" id="wayb">
+                    <option value="1">左转</option>
+                    <option value="2">右转</option>
+                    <option value="3">调头</option>
+                    <option value="4">变道</option>
+                    <option value="5">直行</option>
+                    <option value="6">超车</option>
+                </select>
+            </div>
+            <button type="button" onclick="submitData()">Submit</button>
+        </div>
+        <div id="result">Result:</div>
+    </div>
     <script>
         // define a function to fetch and parse CSV file.
         // You can just ignore it. 
