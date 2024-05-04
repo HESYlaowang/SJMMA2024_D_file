@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>test page</title>
+</head>
+<body>
+    <form id="dataForm">
+        <label for="la">la:</label>
+        <input type="text" id="la" name="la">
+        <br>
+        <label for="lb">lb:</label>
+        <input type="text" id="lb" name="lb">
+        <br>
+        <label for="waya">waya:</label>
+        <input type="text" id="waya" name="waya">
+        <br>
+        <label for="wayb">wayb:</label>
+        <input type="text" id="wayb" name="wayb">
+        <br>
+        <button type="button" onclick="submitData()">Submit</button>
+    </form>
+    <div id="result"></div>
+    <script>
+        // define a function to fetch and parse CSV file.
+        // You can just ignore it. 
+        async function fetchAndParseCSV(url) {
+            try {
+                const response = await fetch(url);
+                const csvData = await response.text();
+                const rows = csvData.split('\n');
+                const dataSets = [];
+
+                // Assuming the first row contains headers
+                const headers = rows[0].split(',');
+
+                // Start from the second row to parse actual data
+                for (let i = 1; i < rows.length; i++) {
+                    const cells = rows[i].split(',');
+                    if (cells.length === headers.length) {
+                        const dataSet = {};
+                        for (let j = 0; j < headers.length; j++) {
+                            dataSet[headers[j].trim()] = cells[j].trim();
+                        }
+                        dataSets.push(dataSet);
+                    }
+                }
+                return dataSets;
+            } catch (error) {
+                console.error('Error fetching or parsing CSV file:', error);
+                return null;
+            }
+        }
+        // Call the function to fetch and parse CSV file
+        let ds;
+        fetchAndParseCSV('dataset.csv')
+            .then(dataSets => {
+                if (dataSets) {
+                    // console.log('Parsed data sets:', dataSets);
+                    ds = dataSets;
+                } else {
+                    console.error('Failed to fetch or parse CSV file.');
+                }
+            });
+
+        function find_res(way_a, way_b) {
+            let result = ds.filter(row => row['WayA'] === way_a && row['WayB'] === way_b);
+            if (result.length > 0) {
+                return [result[0]['ResA'], result[0]['ResB']];
+            } else {
+                return ['NA', 'NA'];
+            }
+        }
+
+        function search_res(way_a, way_b) {
+            let [res_a, res_b] = find_res(way_a, way_b);
+            return [res_a, res_b];
+        }
+
+        function sigmoid(num) {
+            return 1 / (1 + Math.exp(-num));
+        }
+
+        const level_res = [0.0, Math.ceil(sigmoid(-3) * 100), 30.0, 72.0, Math.ceil(sigmoid(3) * 100), 100.0];
+
+        function final_res(la, lb, ra, rb) {
+            let fa = ra * (100 - level_res[la]);
+            let fac = ra * level_res[la];
+            let fb = rb * (100 - level_res[lb]);
+            let fbc = rb * level_res[lb];
+            return [fa, fac, fb, fbc];
+        }
+
+        function one4all(la, lb, waya, wayb) {
+            let [ra, rb] = search_res(waya, wayb);
+            return final_res(la, lb, ra, rb);
+        }
+
+        function submitData() {
+            let la = document.getElementById('la').value;
+            let lb = document.getElementById('lb').value;
+            let ra = document.getElementById('waya').value;
+            let rb = document.getElementById('wayb').value;
+            let [result1, result2, result3, result4] = one4all(la, lb, ra, rb);
+            document.getElementById('result').innerHTML = `Result: ${result1}, ${result2}, ${result3}, ${result4}`;
+        }
+    </script>
+</body>
+</html>
