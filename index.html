@@ -85,7 +85,7 @@
             flex-direction: column;
             align-items: center;
         }
-
+        
         #result {
             width: 50vw;
             margin-top: 16px;
@@ -96,6 +96,19 @@
             box-shadow: 4px 4px 8px #0000004d, 
                         -4px -4px 8px #ffffff4d;
         } #result:hover {
+            box-shadow: 6px 6px 12px #0000003d, 
+                        -4px -4px 8px #ffffff3d;
+        }
+        #result1 {
+            width: 50vw;
+            margin-top: 16px;
+            padding: 16px;
+            background: #fafafa;
+            border-radius: 8px;
+            font-weight: bold;
+            box-shadow: 4px 4px 8px #0000004d, 
+                        -4px -4px 8px #ffffff4d;
+        } #result1:hover {
             box-shadow: 6px 6px 12px #0000003d, 
                         -4px -4px 8px #ffffff3d;
         }
@@ -139,10 +152,68 @@
         </div>
         <div id="result">Result:</div>
     </div>
+
+    <div class="container">
+        <div id="dataForm"> <div class="block">
+            <label for="level">输出格式：车驾驶员责任，车开发商责任，行人责任，皆为百分比。如果输出NA则说明情况不存在。</levelbel>
+        </div>
+            <div class="block">
+                <label for="level">车的自动驾驶等级（L0-L5）:</label>
+                <input type="text" id="level" name="level">
+            </div>
+            <div class="block">
+                <label for="wayc">车的行为:</label>
+                <select name="wayc" id="wayc">
+                    <option value="1">超速</option>
+                    <option value="2">闯红灯</option>
+                    <option value="3">酒驾</option>
+                    <option value="4">车辆失控</option>
+                    <option value="5">无违法行为</option>
+                </select>
+            </div>
+            <div class="block">
+                <label for="wayp">行人的行为:</label>
+                <select name="wayp" id="wayp">
+                    <option value="1">乱穿马路</option>
+                    <option value="2">闯红灯</option>
+                    <option value="3">无违法行为</option>
+                </select>
+            </div>
+            <button type="button" onclick="submitData1()">Submit</button>
+        </div>
+        <div id="result1">Result:</div>
+    </div>
     <script>
         // define a function to fetch and parse CSV file.
         // You can just ignore it. 
         async function fetchAndParseCSV(url) {
+            try {
+                const response = await fetch(url);
+                const csvData = await response.text();
+                const rows = csvData.split('\n');
+                const dataSets = [];
+
+                // Assuming the first row contains headers
+                const headers = rows[0].split(',');
+
+                // Start from the second row to parse actual data
+                for (let i = 1; i < rows.length; i++) {
+                    const cells = rows[i].split(',');
+                    if (cells.length === headers.length) {
+                        const dataSet = {};
+                        for (let j = 0; j < headers.length; j++) {
+                            dataSet[headers[j].trim()] = cells[j].trim();
+                        }
+                        dataSets.push(dataSet);
+                    }
+                }
+                return dataSets;
+            } catch (error) {
+                console.error('Error fetching or parsing CSV file:', error);
+                return null;
+            }
+        }
+        async function fetchAndParseCSV1(url) {
             try {
                 const response = await fetch(url);
                 const csvData = await response.text();
@@ -221,6 +292,51 @@
             let rb = document.getElementById('wayb').value;
             let [result1, result2, result3, result4] = one4all(la, lb, ra, rb);
             document.getElementById('result').innerHTML = `Result: ${result1}, ${result2}, ${result3}, ${result4}`;
+        }
+        
+        let ds1;
+        fetchAndParseCSV1('dataset1.CSV')
+            .then(dataSets1 => {
+                if (dataSets1) {
+                    // console.log('Parsed data sets:', dataSets);
+                    ds1 = dataSets1;
+                } else {
+                    console.error('Failed to fetch or parse CSV file.');
+                }
+            });
+
+        function find_res1(way_c, way_p) {
+            let result = ds1.filter(row => row['Car'] === way_c && row['Pass'] === way_p);
+            if (result.length > 0) {
+                return [result[0]['Car_Res'], result[0]['Pass_Res']];
+            } else {
+                return ['NA', 'NA'];
+            }
+        }
+
+        function search_res1(way_a, way_b) {
+            let [res_a, res_b] = find_res1(way_a, way_b);
+            return [res_a, res_b];
+        }
+
+        function final_res1(level, ra, rb) {
+            let fa = Math.round(ra * (100 - level_res[level]));
+            let fac = Math.round(ra * level_res[level]);
+            let fb = Math.round(rb * 100);
+            return [fa, fac, fb];
+        }
+
+        function one4all1(level, wayc, wayp) {
+            let [ra, rb] = search_res1(wayc, wayp);
+            return final_res1(level, ra, rb);
+        }
+
+        function submitData1() {
+            let level = document.getElementById('level').value;
+            let ra = document.getElementById('wayc').value;
+            let rb = document.getElementById('wayp').value;
+            let [result1, result2, result3] = one4all1(level, ra, rb);
+            document.getElementById('result1').innerHTML = `Result: ${result1}, ${result2}, ${result3}`;
         }
     </script>
 </body>
