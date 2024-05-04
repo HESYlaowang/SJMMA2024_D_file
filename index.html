@@ -115,11 +115,26 @@
             box-shadow: 6px 6px 12px #0000003d, 
                         -4px -4px 8px #ffffff3d;
         }
+
+        #result2 {
+            width: 50vw;
+            margin-top: 16px;
+            padding: 16px;
+            background: #fafafa;
+            border-radius: 8px;
+            font-weight: bold;
+            box-shadow: 4px 4px 8px #0000004d, 
+                        -4px -4px 8px #ffffff4d;
+        } #result2:hover {
+            box-shadow: 6px 6px 12px #0000003d, 
+                        -4px -4px 8px #ffffff3d;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div id="dataForm"> <div class="block">
+            <label for="la">双车模型</label>
             <label for="la">输出格式：前车驾驶员责任，前车开发商责任，后车驾驶员责任，后车开发商责任，皆为百分比。如果输出NA则说明情况不存在。</label>
         </div>
             <div class="block">
@@ -158,6 +173,7 @@
 
     <div class="container">
         <div id="dataForm"> <div class="block">
+            <label for="la">车人模型</label>
             <label for="level">输出格式：车驾驶员责任，车开发商责任，行人责任，皆为百分比。如果输出NA则说明情况不存在。</levelbel>
         </div>
             <div class="block">
@@ -186,6 +202,59 @@
         </div>
         <div id="result1">Result:</div>
     </div>
+
+    <div class="container">
+        <div id="dataForm"> <div class="block">
+            <label for="la">三车模型</label>
+            <label for="la">输出格式：第一辆车驾驶员责任，第一辆车开发商责任，第二辆车驾驶员责任，第二辆车开发商责任，第三辆车驾驶员责任，第三辆车开发商责任，皆为百分比。如果输出NA则说明情况不存在。</label>
+        </div>
+            <div class="block">
+                <label for="lx">第一辆车的自动驾驶等级（L0-L5）:</label>
+                <input type="text" id="lx" name="lx">
+            </div>
+            <div class="block">
+                <label for="ly">第二辆车的自动驾驶等级（L0-L5）:</label>
+                <input type="text" id="ly" name="ly">
+            </div>
+            <div class="block">
+                <label for="lz">第三辆车的自动驾驶等级（L0-L5）:</label>
+                <input type="text" id="lz" name="lz">
+            </div>
+            <div class="block">
+                <label for="wayx">第一辆车的行为:</label>
+                <select name="wayx" id="wayx">
+                    <option value="1">左转</option>
+                    <option value="2">右转</option>
+                    <option value="3">调头</option>
+                    <option value="4">变道</option>
+                    <option value="5">直行</option>
+                </select>
+            </div>
+            <div class="block">
+                <label for="wayy">第二辆车的行为:</label>
+                <select name="wayy" id="wayy">
+                    <option value="1">左转</option>
+                    <option value="2">右转</option>
+                    <option value="3">调头</option>
+                    <option value="4">变道</option>
+                    <option value="5">直行</option>
+                </select>
+            </div>
+            <div class="block">
+                <label for="wayz">第三辆车的行为:</label>
+                <select name="wayz" id="wayz">
+                    <option value="1">左转</option>
+                    <option value="2">右转</option>
+                    <option value="3">调头</option>
+                    <option value="4">变道</option>
+                    <option value="5">直行</option>
+                </select>
+            </div>
+            <button type="button" onclick="submitData2()">Submit</button>
+        </div>
+        <div id="result2">Result:</div>
+    </div>
+
     <script>
         // define a function to fetch and parse CSV file.
         // You can just ignore it. 
@@ -340,6 +409,62 @@
             let rb = document.getElementById('wayp').value;
             let [result1, result2, result3] = one4all1(level, ra, rb);
             document.getElementById('result1').innerHTML = `Result: ${result1}, ${result2}, ${result3}`;
+        }
+
+        let ds2;
+        fetchAndParseCSV('dataset2.CSV')
+            .then(dataSets2 => {
+                if (dataSets2) {
+                    // console.log('Parsed data sets:', dataSets);
+                    ds2 = dataSets2;
+                } else {
+                    console.error('Failed to fetch or parse CSV file.');
+                }
+            });
+
+        function find_res2(way_x, way_y, way_z) {
+            let result = ds2.filter(row => row['WayX'] === way_x && row['WayY'] === way_y && row['WayZ'] === way_z);
+            if (result.length > 0) {
+                return [result[0]['fRes_X'], result[0]['fRes_Y'], result[0]['fRes_Z']];
+            } else {
+                return ['NA', 'NA'];
+            }
+        }
+
+        function search_res2(way_x, way_y, way_z) {
+            let [res_x, res_y, res_z] = find_res2(way_x, way_y, way_z);
+            return [res_x, res_y, res_z];
+        }
+        function final_res2(lx, ly, lz, rx, ry, rz) {
+            let tmpx = rx * (100 - level_res[lx]);
+            let tmpxc = rx * level_res[lx];
+            let tmpy = ry * (100 - level_res[ly]);
+            let tmpyc = ry * level_res[ly];
+            let tmpz = rz * (100 - level_res[lz]);
+            let tmpzc = rz * level_res[lz];
+            let fx = parseFloat(tmpx.toFixed(1));
+            let fxc = parseFloat(tmpxc.toFixed(1));
+            let fy = parseFloat(tmpy.toFixed(1));
+            let fyc = parseFloat(tmpyc.toFixed(1));
+            let fz = parseFloat(tmpz.toFixed(1));
+            let fzc = parseFloat(tmpzc.toFixed(1));
+            return [fx, fxc, fy, fyc, fz, fzc];
+        }
+
+        function one4all2(lx, ly, lz, wayx, wayy, wayz) {
+            let [rx, ry, rz] = search_res2(wayx, wayy, wayz);
+            return final_res2(lx, ly, lz, rx, ry, rz);
+        }
+
+        function submitData2() {
+            let lx = document.getElementById('lx').value;
+            let ly = document.getElementById('ly').value;
+            let lz = document.getElementById('lz').value;
+            let rx = document.getElementById('wayx').value;
+            let ry = document.getElementById('wayy').value;
+            let rz = document.getElementById('wayz').value;
+            let [result1, result2, result3, result4, result5, result6] = one4all2(lx, ly, lz, rx, ry, rz);
+            document.getElementById('result2').innerHTML = `Result: ${result1}, ${result2}, ${result3}, ${result4}, ${result5}, ${result6}`;
         }
     </script>
 </body>
